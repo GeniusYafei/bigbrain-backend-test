@@ -3,6 +3,13 @@ import jwt from "jsonwebtoken";
 import { AccessError, InputError } from "./error.js";
 import { Redis } from "@upstash/Redis";
 
+// ✅ Redis Setup
+const redis = new Redis({
+  url: process.env.UPSTASH_REDIS_REST_URL,
+  token: process.env.UPSTASH_REDIS_REST_TOKEN,
+});
+const DATA_KEY = "bigbrain-data";
+
 const lock = new AsyncLock();
 
 const JWT_SECRET = "llamallamaduck";
@@ -22,7 +29,7 @@ const writeToRedis = (adminState, gameState, sessionState) =>
   new Promise((resolve, reject) => {
     lock.acquire("saveData", async () => {
       try {
-        await Redis.set(DATA_KEY, {
+        await redis.set(DATA_KEY, {
           admins: adminState,
           games: gameState,
           sessions: sessionState,
@@ -47,7 +54,7 @@ export const reset = () => {
 
 (async () => {
   try {
-    const data = await Redis.get(DATA_KEY);
+    const data = await redis.get(DATA_KEY);
     if (data) {
       admins = data.admins || {};
       games = data.games || {};
