@@ -4,8 +4,11 @@ import bodyParser from 'body-parser';
 import cors from 'cors';
 import swaggerUi from 'swagger-ui-express';
 import fs from 'fs';
+import path from 'path';
 
-import swaggerDocument from '../src/swagger.json';
+const swaggerDocument = JSON.parse(
+  fs.readFileSync(path.resolve('src/swagger.json'), 'utf-8')
+);
 import { AccessError, InputError } from '../src/error.js';
 
 import {
