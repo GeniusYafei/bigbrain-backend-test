@@ -79,6 +79,12 @@ export function getEmailFromAuthorization(authHeader) {
   return email;
 }
 
+export function getAnswers(sessionId, playerId) {
+  const session = sessions[sessionId];
+  if (!session || !session.players[playerId]) return [];
+  return session.players[playerId].answers || [];
+}
+
 export function getGamesFromAdmin(email) {
   return Object.values(games).filter(game => game.owner === email);
 }
