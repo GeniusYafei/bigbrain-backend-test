@@ -5,7 +5,7 @@ import fs from 'fs';
 import swaggerUi from 'swagger-ui-express';
 
 import swaggerDocument from '../swagger.json';
-import { AccessError, InputError, } from './error';
+import { AccessError, InputError, } from './error.js';
 import {
   assertOwnsGame,
   assertOwnsSession,
@@ -78,7 +78,7 @@ app.post('/admin/auth/logout', catchErrors(authed(async (req, res, email) => {
 /***************************************************************
                       Game Functions
 ***************************************************************/
-app.get('/admin/games', catchErrors(authed(async (req, res, email) => { 
+app.get('/admin/games', catchErrors(authed(async (req, res, email) => {
   const games = await getGamesFromAdmin(email);
   return res.json({ games });
 })));
