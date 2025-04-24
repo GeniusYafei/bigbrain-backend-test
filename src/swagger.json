@@ -1,0 +1,1086 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "version": "1.0.0",
+    "title": "BigBrain CRUD Server",
+    "description": "Server that powers the BigBrain frontend",
+    "license": {
+      "name": "MIT",
+      "url": "https://opensource.org/licenses/MIT"
+    }
+  },
+  "servers": [
+    {
+      "url": "http://localhost:5005",
+      "description": "Local development server"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    },
+    "schemas": {
+      "Error": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string",
+            "description": "Error message"
+          }
+        }
+      },
+      "AuthRequest": {
+        "type": "object",
+        "required": ["email", "password"],
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "example": "hayden@unsw.edu.au"
+          },
+          "password": {
+            "type": "string",
+            "format": "password",
+            "example": "adummypassword"
+          }
+        }
+      },
+      "AuthRegisterRequest": {
+        "type": "object",
+        "required": ["email", "password", "name"],
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "example": "hayden@unsw.edu.au"
+          },
+          "password": {
+            "type": "string",
+            "format": "password",
+            "example": "adummypassword"
+          },
+          "name": {
+            "type": "string",
+            "description": "Name of the admin user",
+            "example": "Hayden Smith"
+          }
+        }
+      },
+      "TokenResponse": {
+        "type": "object",
+        "properties": {
+          "token": {
+            "type": "string",
+            "description": "JWT Token",
+            "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+          }
+        }
+      },
+      "Game": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "example": 56513315
+          },
+          "owner": {
+            "type": "string",
+            "format": "email",
+            "example": "hayden@unsw.edu.au"
+          },
+          "active": {
+            "type": ["integer", "null"],
+            "description": "The ID of the active session for this game. If no active session, it's null",
+            "example": null
+          },
+          "questions": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "duration": {
+                  "type": "integer",
+                  "description": "The duration of the question in seconds",
+                  "example": 10
+                },
+                "correctAnswers": {
+                  "type": "array",
+                  "description": "The index of the correct answer - THIS IS MANDATORY TO MAKE BACKEND FUNCTION",
+                  "example": ["Answer 3", "Answer 4"]
+                },
+                "answers": {
+                  "type": "array",
+                  "example": [
+                    {
+                      "answer": "THIS IS JUST AN EXAMPLE"
+                    },
+                    {
+                      "answer": "YOU CAN HAVE WHATEVER MAKES SENSE FOR YOUR QUESTION AS YOU PUT THEM BACK"
+                    },
+                    {
+                      "answer": "Answer 3"
+                    },
+                    {
+                      "answer": "Answer 4"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "AAAA": {
+            "type": "string",
+            "description": "AAAA",
+            "example": "WHATEVER YOU PUT IN A GAME"
+          },
+          "BBBB": {
+            "type": "string",
+            "description": "BBBB",
+            "example": "STORE AS MANY AS YOU WANT"
+          }
+        }
+      }
+    },
+    "fields": {
+      "Email": {
+        "type": "string",
+        "format": "email",
+        "example": "hayden@unsw.edu.au",
+        "description": "Email address"
+      },
+      "GameName": {
+        "type": "string",
+        "example": "My cool game",
+        "description": "The name of a game"
+      },
+      "GameThumbnail": {
+        "type": "string",
+        "example": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAAApgAAAKYB3X3/OAAAABl0RVh0U29mdHdhcmUAd3d3Lmlua3NjYXBlLm9yZ5vuPBoAAANCSURBVEiJtZZPbBtFFMZ/M7ubXdtdb1xSFyeilBapySVU8h8OoFaooFSqiihIVIpQBKci6KEg9Q6H9kovIHoCIVQJJCKE1ENFjnAgcaSGC6rEnxBwA04Tx43t2FnvDAfjkNibxgHxnWb2e/u992bee7tCa00YFsffekFY+nUzFtjW0LrvjRXrCDIAaPLlW0nHL0SsZtVoaF98mLrx3pdhOqLtYPHChahZcYYO7KvPFxvRl5XPp1sN3adWiD1ZAqD6XYK1b/dvE5IWryTt2udLFedwc1+9kLp+vbbpoDh+6TklxBeAi9TL0taeWpdmZzQDry0AcO+jQ12RyohqqoYoo8RDwJrU+qXkjWtfi8Xxt58BdQuwQs9qC/afLwCw8tnQbqYAPsgxE1S6F3EAIXux2oQFKm0ihMsOF71dHYx+f3NND68ghCu1YIoePPQN1pGRABkJ6Bus96CutRZMydTl+TvuiRW1m3n0eDl0vRPcEysqdXn+jsQPsrHMquGeXEaY4Yk4wxWcY5V/9scqOMOVUFthatyTy8QyqwZ+kDURKoMWxNKr2EeqVKcTNOajqKoBgOE28U4tdQl5p5bwCw7BWquaZSzAPlwjlithJtp3pTImSqQRrb2Z8PHGigD4RZuNX6JYj6wj7O4TFLbCO/Mn/m8R+h6rYSUb3ekokRY6f/YukArN979jcW+V/S8g0eT/N3VN3kTqWbQ428m9/8k0P/1aIhF36PccEl6EhOcAUCrXKZXXWS3XKd2vc/TRBG9O5ELC17MmWubD2nKhUKZa26Ba2+D3P+4/MNCFwg59oWVeYhkzgN/JDR8deKBoD7Y+ljEjGZ0sosXVTvbc6RHirr2reNy1OXd6pJsQ+gqjk8VWFYmHrwBzW/n+uMPFiRwHB2I7ih8ciHFxIkd/3Omk5tCDV1t+2nNu5sxxpDFNx+huNhVT3/zMDz8usXC3ddaHBj1GHj/As08fwTS7Kt1HBTmyN29vdwAw+/wbwLVOJ3uAD1wi/dUH7Qei66PfyuRj4Ik9is+hglfbkbfR3cnZm7chlUWLdwmprtCohX4HUtlOcQjLYCu+fzGJH2QRKvP3UNz8bWk1qMxjGTOMThZ3kvgLI5AzFfo379UAAAAASUVORK5CYII=",
+        "description": "Base 64 image that is the thumbnail of the game"
+      },
+      "Password": {
+        "type": "string",
+        "format": "password",
+        "description": "Password",
+        "example": "adummypassword"
+      },
+      "Name": {
+        "type": "string",
+        "description": "Name of a user",
+        "example": "Harry Jenkins"
+      },
+      "GameId": {
+        "type": "integer",
+        "description": "ID of the game",
+        "example": 56513315
+      },
+      "GameCreatedAt": {
+        "type": "string",
+        "format": "date-time",
+        "description": "When the game was created",
+        "example": "2020-10-31T14:45:21.077Z"
+      },
+      "GameActive": {
+        "type": ["integer", "null"],
+        "description": "The ID of the active session for this game. If no ID is present, it's null",
+        "example": null
+      },
+      "GameInactiveSessions": {
+        "type": "array",
+        "description": "IDs of all previously active (but no longer active) sessions",
+        "items": {
+          "type": "integer",
+          "example": 4545546
+        }
+      },
+      "GameQuestions": {
+        "type": "array",
+        "description": "List of all Game questions",
+        "items": {
+          "type": "object"
+        }
+      },
+      "GameNumQuestions": {
+        "type": "integer",
+        "description": "Number of questions in the game",
+        "example": 1
+      },
+      "PlayerName": {
+        "type": "string",
+        "description": "Name of the player",
+        "example": "Hayden Smith"
+      },
+      "Answers": {
+        "type": "array",
+        "description": "Actual value of the answers",
+        "items": {
+          "type": "string",
+          "example": "Answer 1"
+        }
+      },
+      "Answer": {
+        "type": "string",
+        "example": "Answer 1",
+        "description": "An answer to a question"
+      },
+      "AnswerCorrect": {
+        "type": "boolean",
+        "description": "Whether or not the answer is correct",
+        "example": false
+      },
+      "Timestamp": {
+        "type": ["string", "null"],
+        "format": "date-time",
+        "description": "ISO timestamp",
+        "example": "2020-10-31T14:45:21.077Z"
+      },
+      "SessionActive": {
+        "type": "boolean",
+        "description": "Whether or not the session is currently active",
+        "example": false
+      },
+      "SessionAnswerAvailable": {
+        "type": "boolean",
+        "description": "Whether answers are available for the current question",
+        "example": false
+      },
+      "SessionPosition": {
+        "type": "integer",
+        "description": "The question that the current session is up to (0 = first question)",
+        "example": 2
+      },
+      "SessionPlayers": {
+        "type": "array",
+        "description": "A list of all player names in this session",
+        "items": {
+          "type": "string",
+          "example": "Hayden"
+        }
+      }
+    },
+    "parameters": {
+      "AuthRegisterBody": {
+        "name": "Register info",
+        "in": "body",
+        "schema": {
+          "type": "object",
+          "properties": {
+            "email": {
+              "$ref": "#/components/fields/Email"
+            },
+            "password": {
+              "$ref": "#/components/fields/Password"
+            },
+            "name": {
+              "$ref": "#/components/fields/Name"
+            }
+          }
+        }
+      },
+      "AuthLoginBody": {
+        "name": "Login info",
+        "in": "body",
+        "schema": {
+          "type": "object",
+          "properties": {
+            "email": {
+              "$ref": "#/components/fields/Email"
+            },
+            "password": {
+              "$ref": "#/components/fields/Password"
+            }
+          }
+        }
+      },
+      "AdminGameNew": {
+        "name": "Game info",
+        "in": "body",
+        "schema": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "$ref": "#/components/fields/GameName"
+            }
+          }
+        }
+      },
+      "Authorization": {
+        "name": "Authorization",
+        "in": "header",
+        "schema": {
+          "type": "string",
+          "example": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImhheWRlbkB1bnN3LmVkdS5hdSIsImlhdCI6MTYwMzk0MzIzMH0.b37PfwlcH_cue6yhgvDt2IiNvhRACf79hTNtacYB94Q"
+        },
+        "required": true,
+        "description": "Bearer [token]"
+      },
+      "GameIdQuery": {
+        "in": "path",
+        "name": "gameid",
+        "required": true,
+        "schema": {
+          "type": "integer"
+        },
+        "example": 66666666,
+        "description": "ID of the game"
+      },
+      "SessionIdQuery": {
+        "in": "path",
+        "name": "sessionid",
+        "required": true,
+        "schema": {
+          "type": "integer"
+        },
+        "example": 312894,
+        "description": "ID of the Game session"
+      },
+      "AdminGamePut": {
+        "name": "List of questions",
+        "description": "A list of question objects - schema determined by client",
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "questions": {
+              "$ref": "#/components/fields/GameQuestions"
+            },
+            "name": {
+              "$ref": "#/components/fields/GameName"
+            },
+            "thumbnail": {
+              "$ref": "#/components/fields/GameThumbnail"
+            }
+          }
+        }
+      },
+      "PlayerJoinBody": {
+        "name": "Body for joining as a player",
+        "description": "Items needed to join a session as a player",
+        "in": "body",
+        "schema": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "$ref": "#/components/fields/PlayerName"
+            }
+          }
+        }
+      },
+      "PlayerIdQuery": {
+        "in": "path",
+        "name": "playerid",
+        "required": true,
+        "schema": {
+          "type": "integer"
+        },
+        "example": 312894,
+        "description": "ID of the player in the current Game session"
+      },
+      "PlayerAnswers": {
+        "name": "Answers",
+        "description": "Player chosen answers for a particular question",
+        "in": "body",
+        "schema": {
+          "type": "object",
+          "properties": {
+            "answers": {
+              "$ref": "#/components/fields/Answers"
+            }
+          }
+        }
+      }
+    },
+    "responses": {
+      "200": {
+        "Token": {
+          "description": "OK",
+          "schema": {
+            "type": "object",
+            "properties": {
+              "token": {
+                "type": "string",
+                "description": "JWT Token to provide authorisation",
+                "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImhheWRlbkB1bnN3LmVkdS5hdSIsImlhdCI6MTYwMzk0MzIzMH0.b37PfwlcH_cue6yhgvDt2IiNvhRACf79hTNtacYB94Q"
+              }
+            }
+          }
+        },
+        "Empty": {
+          "description": "Successful",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {}
+              }
+            }
+          }
+        },
+        "AdminGameGetAll": {
+          "description": "OK",
+          "schema": {
+            "type": "object",
+            "properties": {
+              "games": {
+                "type": "array",
+                "description": "List of all games",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "$ref": "#/components/fields/GameId"
+                    },
+                    "createdAt": {
+                      "$ref": "#/components/fields/GameCreatedAt"
+                    },
+                    "name": {
+                      "$ref": "#/components/fields/GameName"
+                    },
+                    "thumbnail": {
+                      "$ref": "#/components/fields/GameThumbnail"
+                    },
+                    "owner": {
+                      "$ref": "#/components/fields/Email"
+                    },
+                    "active": {
+                      "$ref": "#/components/fields/GameActive"
+                    },
+                    "oldSessions": {
+                      "$ref": "#/components/fields/GameInactiveSessions"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "PlayerAnswersAll": {
+          "description": "Successful",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/fields/Answer"
+                }
+              }
+            }
+          }
+        },
+        "AdminGameNew": {
+          "description": "OK",
+          "schema": {
+            "type": "object",
+            "properties": {
+              "gameId": {
+                "$ref": "#/components/fields/GameId"
+              }
+            }
+          }
+        },
+        "AdminGameGet": {
+          "description": "OK",
+          "schema": {
+            "type": "object",
+            "properties": {
+              "questions": {
+                "$ref": "#/components/fields/GameQuestions"
+              },
+              "createdAt": {
+                "$ref": "#/components/fields/GameCreatedAt"
+              },
+              "name": {
+                "$ref": "#/components/fields/GameName"
+              },
+              "thumbnail": {
+                "$ref": "#/components/fields/GameThumbnail"
+              },
+              "owner": {
+                "$ref": "#/components/fields/Email"
+              },
+              "active": {
+                "$ref": "#/components/fields/GameActive"
+              },
+              "oldSessions": {
+                "$ref": "#/components/fields/GameInactiveSessions"
+              }
+            }
+          }
+        },
+        "SessionResults": {
+          "description": "Successfully registered",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "array",
+                "items": {
+                  "properties": {
+                    "name": {
+                      "$ref": "#/components/fields/PlayerName"
+                    },
+                    "answers": {
+                      "type": "array",
+                      "items": {
+                        "properties": {
+                          "answers": {
+                            "$ref": "#/components/fields/Answers"
+                          },
+                          "correct": {
+                            "$ref": "#/components/fields/AnswerCorrect"
+                          },
+                          "answeredAt": {
+                            "$ref": "#/components/fields/Timestamp"
+                          },
+                          "questionStartedAt": {
+                            "$ref": "#/components/fields/Timestamp"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "PlayerResults": {
+          "description": "OK",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "array",
+                "items": {
+                  "properties": {
+                    "answers": {
+                      "$ref": "#/components/fields/Answers"
+                    },
+                    "correct": {
+                      "$ref": "#/components/fields/AnswerCorrect"
+                    },
+                    "answeredAt": {
+                      "$ref": "#/components/fields/Timestamp"
+                    },
+                    "questionStartedAt": {
+                      "$ref": "#/components/fields/Timestamp"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "SessionStatus": {
+          "description": "Successful",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "results": {
+                    "type": "object",
+                    "properties": {
+                      "active": {
+                        "$ref": "#/components/fields/SessionActive"
+                      },
+                      "answerAvailable": {
+                        "$ref": "#/components/fields/SessionAnswerAvailable"
+                      },
+                      "isoTimeLastQuestionStarted": {
+                        "$ref": "#/components/fields/Timestamp"
+                      },
+                      "position": {
+                        "$ref": "#/components/fields/SessionPosition"
+                      },
+                      "questions": {
+                        "$ref": "#/components/fields/GameQuestions"
+                      },
+                      "numQuestions": {
+                        "$ref": "#/components/fields/GameNumQuestions"
+                      },
+                      "players": {
+                        "$ref": "#/components/fields/SessionPlayers"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "PlayerId": {
+          "description": "Successful",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "playerId": {
+                    "type": "integer",
+                    "description": "ID of the player in this session",
+                    "example": 2389498
+                  }
+                }
+              }
+            }
+          }
+        },
+        "PlayerStatus": {
+          "description": "Successful",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "started": {
+                    "type": "boolean",
+                    "description": "True if the game has started, false otherwise",
+                    "example": true
+                  }
+                }
+              }
+            }
+          }
+        },
+        "PlayerQuestion": {
+          "description": "Successful",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "isoTimeLastQuestionStarted": {
+                    "$ref": "#/components/fields/Timestamp"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "PlayerAnswers": {
+          "description": "Answer IDs for a particular question",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "answers": {
+                    "$ref": "#/components/fields/Answers"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "400": {
+        "description": "Bad Input",
+        "schema": {
+          "$ref": "#/components/schemas/Error"
+        }
+      },
+      "403": {
+        "description": "Forbidden",
+        "schema": {
+          "$ref": "#/components/schemas/Error"
+        }
+      }
+    }
+  },
+  "paths": {
+    "/admin/auth/register": {
+      "post": {
+        "tags": ["Authentication"],
+        "summary": "Register a new admin user",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AuthRegisterRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successfully registered",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TokenResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/auth/login": {
+      "post": {
+        "tags": ["Authentication"],
+        "summary": "Login as admin",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AuthRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successfully logged in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TokenResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/auth/logout": {
+      "post": {
+        "tags": ["Authentication"],
+        "summary": "Logout admin user",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully logged out",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {}
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/games": {
+      "get": {
+        "tags": ["Admin Game Management"],
+        "summary": "Get all games",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of games",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "games": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Game"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "summary": "Update multiple games owned by the admin",
+        "security": [{ "bearerAuth": [] }],
+        "tags": ["Admin Game Management"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "games": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "id": { "$ref": "#/components/fields/GameId" },
+                        "owner": { "$ref": "#/components/fields/Email" },
+                        "questions": {
+                          "type": "array",
+                          "items": {
+                            "type": "object"
+                          },
+                          "example": [{
+                            "duration": 10,
+                            "correctAnswers": ["Answer 3", "Answer 4"],
+                            "NOTE": "correctAnswers is MANDATORY AND MUST BE IN THE QUESTION SCHEMA",
+                            "REST": "WHATEVER YOU NEED IN A QUESTION"
+                            }
+                          ]
+                        },
+                        "AAAA": {
+                          "type": "string",
+                          "description": "AAAA",
+                          "example": "WHATEVER YOU PUT IN A GAME"
+                        },
+                        "BBBB": {
+                          "type": "string",
+                          "description": "BBBB",
+                          "example": "STORE AS MANY AS YOU WANT"
+                        }
+                      }
+                    }
+                  }
+                },
+                "required": ["games"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "$ref": "#/components/responses/200/Empty" },
+          "400": { "$ref": "#/components/responses/400" },
+          "403": { "$ref": "#/components/responses/403" }
+        }
+      }
+    },
+    "/admin/game/{gameid}/mutate": {
+      "post": {
+        "summary": "Mutate a game's state (start/advance/end)",
+        "security": [{ "bearerAuth": [] }],
+        "tags": ["Admin Game Management"],
+        "parameters": [{ "$ref": "#/components/parameters/GameIdQuery" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "mutationType": {
+                    "type": "string",
+                    "enum": ["START", "ADVANCE", "END"],
+                    "description": "Type of mutation to perform on the game"
+                  }
+                },
+                "required": ["mutationType"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successfully registered",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "status": {
+                          "type": "string",
+                          "enum": ["started", "advanced", "ended"]
+                        },
+                        "position": {
+                          "type": "number",
+                          "description": "Current question position (only for 'advanced' status)"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/400" },
+          "403": { "$ref": "#/components/responses/403" }
+        }
+      }
+    },
+
+    "/admin/session/{sessionid}/status": {
+      "get": {
+        "summary": "Get the current status for a Game session",
+        "security": [{ "bearerAuth": [] }],
+        "tags": ["Admin Game Management"],
+        "parameters": [
+          { "$ref": "#/components/parameters/SessionIdQuery" }
+        ],
+        "responses": {
+          "200": { "$ref": "#/components/responses/200/SessionStatus" },
+          "400": { "$ref": "#/components/responses/400" },
+          "403": { "$ref": "#/components/responses/403" }
+        }
+      }
+    },
+    "/admin/session/{sessionid}/results": {
+      "get": {
+        "summary": "Get the results for a Game session and what people's scores were",
+        "security": [{ "bearerAuth": [] }],
+        "tags": ["Admin Game Management"],
+        "parameters": [
+          { "$ref": "#/components/parameters/SessionIdQuery" }
+        ],
+        "responses": {
+          "200": { "$ref": "#/components/responses/200/SessionResults" },
+          "400": { "$ref": "#/components/responses/400" },
+          "403": { "$ref": "#/components/responses/403" }
+        }
+      }
+    },
+    "/play/join/{sessionid}": {
+      "post": {
+        "summary": "Join an active session as a new player",
+        "tags": ["Player"],
+        "parameters": [{ "$ref": "#/components/parameters/SessionIdQuery" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "$ref": "#/components/fields/PlayerName"
+                  }
+                },
+                "required": ["name"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "$ref": "#/components/responses/200/PlayerId" },
+          "400": { "$ref": "#/components/responses/400" }
+        }
+      }
+    },
+    "/play/{playerid}/status": {
+      "get": {
+        "summary": "For the current session, the player can determine if it's started or not",
+        "tags": ["Player"],
+        "parameters": [{ "$ref": "#/components/parameters/PlayerIdQuery" }],
+        "responses": {
+          "200": { "$ref": "#/components/responses/200/PlayerStatus" },
+          "400": { "$ref": "#/components/responses/400" }
+        }
+      }
+    },
+    "/play/{playerid}/question": {
+      "get": {
+        "summary": "For the current question that session is up to, this gets the details of the question",
+        "tags": ["Player"],
+        "parameters": [{ "$ref": "#/components/parameters/PlayerIdQuery" }],
+        "responses": {
+          "200": { "$ref": "#/components/responses/200/PlayerQuestion" },
+          "400": { "$ref": "#/components/responses/400" }
+        }
+      }
+    },
+    "/play/{playerid}/answer": {
+      "get": {
+        "summary": "Once the question timer is finished, returns the correct answer",
+        "tags": ["Player"],
+        "parameters": [{ "$ref": "#/components/parameters/PlayerIdQuery" }],
+        "responses": {
+          "200": { "$ref": "#/components/responses/200/PlayerAnswersAll" },
+          "400": { "$ref": "#/components/responses/400" }
+        }
+      },
+      "put": {
+        "summary": "For the current question that the session is up to, this allows the player to submit their answer",
+        "tags": ["Player"],
+        "parameters": [
+          { "$ref": "#/components/parameters/PlayerIdQuery" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "answers": {
+                    "$ref": "#/components/fields/Answers"
+                  }
+                },
+                "required": ["answers"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "$ref": "#/components/responses/200/Empty" },
+          "400": { "$ref": "#/components/responses/400" }
+        }
+      }
+    },
+    "/play/{playerid}/results": {
+      "get": {
+        "summary": "Once a session has ended, this allows players to collect the results of their performance, benchmarked against others",
+        "tags": ["Player"],
+        "parameters": [{ "$ref": "#/components/parameters/PlayerIdQuery" }],
+        "responses": {
+          "200": { "$ref": "#/components/responses/200/PlayerResults" },
+          "400": { "$ref": "#/components/responses/400" }
+        }
+      }
+    }
+  }
+}
