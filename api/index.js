@@ -2,13 +2,7 @@
 import express from 'express';
 import bodyParser from 'body-parser';
 import cors from 'cors';
-import swaggerUi from 'swagger-ui-express';
-import fs from 'fs';
-import path from 'path';
 
-const swaggerDocument = JSON.parse(
-  fs.readFileSync(path.resolve('src/swagger.json'), 'utf-8')
-);
 import { AccessError, InputError } from '../src/error.js';
 
 import {
@@ -160,12 +154,6 @@ app.get('/play/:playerid/results', catchErrors(async (req, res) => {
   const { playerid } = req.params;
   return res.status(200).send(await getResults(playerid));
 }));
-
-/***************************************************************
-                      Swagger Documentation
-***************************************************************/
-app.get('/', (req, res) => res.redirect('/docs'));
-app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 /***************************************************************
                Vercel Serverless API Entry Point
