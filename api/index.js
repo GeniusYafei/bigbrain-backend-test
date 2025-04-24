@@ -30,7 +30,7 @@ const app = express();
 
 app.use(
   cors({
-    origin: "https://bigbrain-frontend-olive.vercel.app/", // https://bigbrain-frontend-olive.vercel.app
+    origin: "https://bigbrain-frontend-olive.vercel.app", // https://bigbrain-frontend-olive.vercel.app
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
   })
