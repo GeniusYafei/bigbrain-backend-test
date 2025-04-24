@@ -1,7 +1,7 @@
 import AsyncLock from "async-lock";
 import jwt from "jsonwebtoken";
 import { AccessError, InputError } from "./error.js";
-import { Redis } from '@upstash/redis';
+import { Redis } from "@upstash/Redis";
 
 const lock = new AsyncLock();
 
@@ -18,19 +18,26 @@ let sessions = {};
 
 const sessionTimeouts = {};
 
-const update = (admins, games, sessions) =>
+const writeToRedis = (adminState, gameState, sessionState) =>
   new Promise((resolve, reject) => {
     lock.acquire("saveData", async () => {
       try {
-        await redis.set(DATA_KEY, { admins, games, sessions });
+        await Redis.set(DATA_KEY, {
+          admins: adminState,
+          games: gameState,
+          sessions: sessionState,
+        });
+        console.log("✅ Redis write success");
         resolve();
-      } catch {
+      } catch (err) {
+        console.error("❌ Redis write failed", err);
         reject(new Error("Writing to Redis failed"));
       }
     });
   });
 
-export const save = () => update(admins, games, sessions);
+console.log("🚀 calling save()");
+export const save = () => writeToRedis(admins, games, sessions);
 export const reset = () => {
   update({}, {}, {});
   admins = {};
@@ -40,7 +47,7 @@ export const reset = () => {
 
 (async () => {
   try {
-    const data = await redis.get(DATA_KEY);
+    const data = await Redis.get(DATA_KEY);
     if (data) {
       admins = data.admins || {};
       games = data.games || {};
@@ -196,7 +203,10 @@ export const updateGamesFromAdmin = ({ gamesArrayFromRequest, email }) =>
       // Convert array to object format and update
       const newGames = {};
       gamesArrayFromRequest.forEach((gameFromRequest) => {
-        const gameIdFromRequest = gameFromRequest.id || gameFromRequest.gameId || gameFromRequest.gameID;
+        const gameIdFromRequest =
+          gameFromRequest.id ||
+          gameFromRequest.gameId ||
+          gameFromRequest.gameID;
         // If game has an ID and it exists in admin's games, use that ID
         // Otherwise generate a new ID
         const gameId =
