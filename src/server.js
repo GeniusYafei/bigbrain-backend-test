@@ -2,9 +2,6 @@ import bodyParser from 'body-parser';
 import cors from 'cors';
 import express from 'express';
 import fs from 'fs';
-import swaggerUi from 'swagger-ui-express';
-
-import swaggerDocument from '../swagger.json';
 import { AccessError, InputError, } from './error.js';
 import {
   assertOwnsGame,
@@ -164,7 +161,7 @@ app.get('/play/:playerid/results', catchErrors(async (req, res) => {
 
 app.get('/', (req, res) => res.redirect('/docs'));
 
-app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+// app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 const configData = JSON.parse(fs.readFileSync('../frontend/backend.config.json', 'utf8'));
 const port = 'BACKEND_PORT' in configData ? configData.BACKEND_PORT : 5000;
